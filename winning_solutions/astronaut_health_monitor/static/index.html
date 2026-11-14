@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASTRONOVA | NASA Astronaut Autonomous Health Monitor (Space Apps 2026)</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #070b14;
+      --card-bg: #0d1527;
+      --card-border: #1a2a4c;
+      --accent-blue: #00b4d8;
+      --accent-cyan: #90e0ef;
+      --accent-red: #ff4d6d;
+      --accent-yellow: #ffb703;
+      --accent-green: #06d6a0;
+      --text: #e2eafc;
+      --text-muted: #8da2c0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .logo-area { display: flex; align-items: center; gap: 14px; }
+    .logo-badge { background: linear-gradient(135deg, #0077b6, #00b4d8); padding: 10px 14px; border-radius: 8px; font-weight: 800; font-size: 1.2rem; }
+    .title-area h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 1px; }
+    .title-area p { font-size: 0.85rem; color: var(--text-muted); }
+    .mission-status { display: flex; gap: 20px; align-items: center; font-size: 0.9rem; }
+    .status-tag { padding: 6px 12px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; background: rgba(6,214,160,0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: 320px 1fr 340px;
+      gap: 20px;
+    }
+    @media (max-width: 1200px) { .grid-container { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .card-header h2 { font-size: 1.1rem; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px; }
+
+    /* Telemetry Controls */
+    .control-group { margin-bottom: 14px; }
+    .control-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
+    input[type=range] { width: 100%; accent-color: var(--accent-blue); }
+
+    /* Readiness Meter */
+    .readiness-box { text-align: center; padding: 20px; background: rgba(0,180,216,0.05); border-radius: 12px; border: 1px dashed var(--accent-blue); margin-bottom: 18px; }
+    .readiness-val { font-size: 3.5rem; font-weight: 900; color: var(--accent-green); }
+    .readiness-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Hazard Badges */
+    .hazard-tile {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .hazard-tile h3 { font-size: 0.95rem; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .hazard-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* Action Plan list */
+    .action-item {
+      display: flex;
+      gap: 12px;
+      background: rgba(0,119,182,0.1);
+      border-left: 3px solid var(--accent-blue);
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    button.btn {
+      width: 100%;
+      background: linear-gradient(135deg, #0077b6, #00b4d8);
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.2s;
+    }
+    button.btn:hover { opacity: 0.9; }
+    button.btn-alert { background: linear-gradient(135deg, #d90429, #ef233c); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-area">
+      <div class="logo-badge"><i class="fa-solid fa-satellite"></i> ASTRONOVA</div>
+      <div class="title-area">
+        <h1>Autonomous Spacecraft Medical Decision Support Engine</h1>
+        <p>NASA International Space Apps Challenge 2026 | Human Exploration & Health</p>
+      </div>
+    </div>
+    <div class="mission-status">
+      <div><i class="fa-solid fa-rocket"></i> Artemis Mars-Transit (Day 142)</div>
+      <div><i class="fa-solid fa-tower-broadcast"></i> Earth Comm Delay: 18.4 min</div>
+      <span class="status-tag" id="statusBadge">EDGE AUTONOMY ACTIVE</span>
+    </div>
+  </header>
+
+  <div class="grid-container">
+    
+    <!-- LEFT PANEL: TELEMETRY INPUTS (SIMULATION) -->
+    <div class="column">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-sliders"></i> Biometric Telemetry</h2>
+          <button class="btn" style="width: auto; padding: 4px 8px; font-size: 0.75rem;" onclick="resetNominal()">Nominal</button>
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Optic Disc Elevation (SANS)</span><span id="lbl_optic">140 µm</span></div>
+          <input type="range" id="inp_optic" min="50" max="600" value="140" oninput="runEvaluation()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Intraocular Pressure (IOP)</span><span id="lbl_iop">17.5 mmHg</span></div>
+          <input type="range" id="inp_iop" min="10" max="32" step="0.5" value="17.5" oninput="runEvaluation()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Ambient Radiation Rate</span><span id="lbl_rad">65 µGy/hr</span></div>
+          <input type="range" id="inp_rad" min="20" max="500" value="65" oninput="runEvaluation()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Resting Heart Rate</span><span id="lbl_hr">68 bpm</span></div>
+          <input type="range" id="inp_hr" min="45" max="120" value="68" oninput="runEvaluation()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Daily Resistive/Aerobic Exercise</span><span id="lbl_ex">2.2 hrs</span></div>
+          <input type="range" id="inp_ex" min="0" max="4" step="0.1" value="2.2" oninput="runEvaluation()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Sleep Duration</span><span id="lbl_sleep">6.8 hrs</span></div>
+          <input type="range" id="inp_sleep" min="3" max="10" step="0.1" value="6.8" oninput="runEvaluation()">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label"><span>Cabin pCO2</span><span id="lbl_co2">1.8 mmHg</span></div>
+          <input type="range" id="inp_co2" min="0.5" max="6.0" step="0.1" value="1.8" oninput="runEvaluation()">
+        </div>
+
+        <div style="margin-top: 15px; display: flex; gap: 8px;">
+          <button class="btn btn-alert" onclick="triggerSolarFlare()"><i class="fa-solid fa-sun"></i> Sim Solar Flare</button>
+          <button class="btn" style="background:#555;" onclick="triggerSANSDecomp()"><i class="fa-solid fa-eye"></i> Sim SANS</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIDDLE PANEL: CLINICAL HAZARDS & DIAGNOSTIC EVALUATION -->
+    <div class="column">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-heart-pulse"></i> NASA 5 Hazards Diagnostic Engine</h2>
+          <span style="font-size: 0.8rem; color: var(--accent-cyan);"><i class="fa-solid fa-microchip"></i> Zero Ground-Link Edge Mode</span>
+        </div>
+
+        <div class="hazard-tile" id="tile_sans">
+          <h3><span><i class="fa-solid fa-eye"></i> Spaceflight-Associated Neuro-ocular Syndrome (SANS)</span> <span id="badge_sans" style="color:var(--accent-green)">Nominal</span></h3>
+          <p class="hazard-desc" id="desc_sans">Mild microgravity cephalic fluid shift. Optic nerve sheath diameter within safe tolerance.</p>
+        </div>
+
+        <div class="hazard-tile" id="tile_rad">
+          <h3><span><i class="fa-solid fa-radiation"></i> Deep Space Radiation & Solar Proton Exposure</span> <span id="badge_rad" style="color:var(--accent-green)">Nominal</span></h3>
+          <p class="hazard-desc" id="desc_rad">Galactic Cosmic Ray flux nominal. No coronal mass ejection alerts active.</p>
+        </div>
+
+        <div class="hazard-tile" id="tile_cardio">
+          <h3><span><i class="fa-solid fa-heart"></i> Cardiovascular & Orthostatic Stability</span> <span id="badge_cardio" style="color:var(--accent-green)">Nominal</span></h3>
+          <p class="hazard-desc" id="desc_cardio">Autonomic tone intact. Orthostatic re-entry collapse risk minimal.</p>
+        </div>
+
+        <div class="hazard-tile" id="tile_env">
+          <h3><span><i class="fa-solid fa-brain"></i> Neuro-Cognitive Workload & ECLSS Cabin Air</span> <span id="badge_env" style="color:var(--accent-green)">Nominal</span></h3>
+          <p class="hazard-desc" id="desc_env">Cognitive reaction latency within 5% of terrestrial baseline. Cabin pCO2 optimal.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: READINESS GAUGE & COUNTERMEASURES -->
+    <div class="column">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-gauge-high"></i> Crew Flight Readiness</h2>
+        </div>
+        <div class="readiness-box">
+          <div class="readiness-val" id="readinessScore">92%</div>
+          <div class="readiness-label" id="readinessStatus">FLIGHT CERTIFIED - OPTIMAL</div>
+        </div>
+
+        <h3 style="font-size: 0.95rem; margin-bottom: 12px; color: var(--accent-cyan);"><i class="fa-solid fa-kit-medical"></i> Prescribed Countermeasures</h3>
+        <div id="countermeasuresList">
+          <div class="action-item">
+            <i class="fa-solid fa-circle-check" style="color: var(--accent-green); margin-top: 2px;"></i>
+            <div>Maintain standard 2.2 hr ARED resistive squat protocol.</div>
+          </div>
+          <div class="action-item">
+            <i class="fa-solid fa-circle-check" style="color: var(--accent-green); margin-top: 2px;"></i>
+            <div>Daily OCT optic nerve fundus scan scheduled at 18:00 UTC.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let speAlert = false;
+
+    function runEvaluation() {
+      const optic = parseFloat(document.getElementById('inp_optic').value);
+      const iop = parseFloat(document.getElementById('inp_iop').value);
+      const rad = parseFloat(document.getElementById('inp_rad').value);
+      const hr = parseFloat(document.getElementById('inp_hr').value);
+      const ex = parseFloat(document.getElementById('inp_ex').value);
+      const sleep = parseFloat(document.getElementById('inp_sleep').value);
+      const co2 = parseFloat(document.getElementById('inp_co2').value);
+
+      document.getElementById('lbl_optic').innerText = optic + ' µm';
+      document.getElementById('lbl_iop').innerText = iop + ' mmHg';
+      document.getElementById('lbl_rad').innerText = rad + ' µGy/hr';
+      document.getElementById('lbl_hr').innerText = hr + ' bpm';
+      document.getElementById('lbl_ex').innerText = ex + ' hrs';
+      document.getElementById('lbl_sleep').innerText = sleep + ' hrs';
+      document.getElementById('lbl_co2').innerText = co2 + ' mmHg';
+
+      // SANS Calculation
+      let frisen = 0;
+      if (optic > 500) frisen = 4;
+      else if (optic > 350) frisen = 3;
+      else if (optic > 220) frisen = 2;
+      else if (optic > 120) frisen = 1;
+
+      let sansRisk = Math.min(100, Math.max(0, (iop - 15) * 3.5 + (optic / 6.0) + (120 * 0.15)));
+      const badgeSans = document.getElementById('badge_sans');
+      const descSans = document.getElementById('desc_sans');
+      if (sansRisk > 65 || frisen >= 3) {
+        badgeSans.innerText = 'CRITICAL (Frisén ' + frisen + ')';
+        badgeSans.style.color = 'var(--accent-red)';
+        descSans.innerText = 'Severe optic disc edema detected. Urgent cephalic fluid redistribution required to avoid permanent vision acuity loss.';
+      } else if (sansRisk > 40 || frisen >= 1) {
+        badgeSans.innerText = 'MODERATE (Frisén ' + frisen + ')';
+        badgeSans.style.color = 'var(--accent-yellow)';
+        descSans.innerText = 'Mild optic nerve elevation. Prescribing daily Lower Body Negative Pressure (LBNP) therapy.';
+      } else {
+        badgeSans.innerText = 'NOMINAL (Frisén 0)';
+        badgeSans.style.color = 'var(--accent-green)';
+        descSans.innerText = 'Optic nerve sheath and visual acuity within baseline flight tolerances.';
+      }
+
+      // Radiation Calculation
+      const badgeRad = document.getElementById('badge_rad');
+      const descRad = document.getElementById('desc_rad');
+      if (speAlert || rad > 200) {
+        badgeRad.innerText = 'SOLAR FLUX WARNING';
+        badgeRad.style.color = 'var(--accent-red)';
+        descRad.innerText = 'High flux particle event detected. Immediate retreat to storm shelter with water-wall shielding recommended.';
+      } else {
+        badgeRad.innerText = 'NOMINAL GCR';
+        badgeRad.style.color = 'var(--accent-green)';
+        descRad.innerText = 'Standard galactic cosmic ray baseline rate (' + rad + ' µGy/hr). Passive dosimetry active.';
+      }
+
+      // Overall Readiness
+      let penalties = (sansRisk * 0.3) + (speAlert || rad > 200 ? 35 : 0) + (ex < 2.0 ? (2.0 - ex) * 15 : 0) + (sleep < 6 ? 15 : 0);
+      let readiness = Math.round(Math.max(15, Math.min(100, 100 - penalties)));
+
+      const rScore = document.getElementById('readinessScore');
+      const rStatus = document.getElementById('readinessStatus');
+      rScore.innerText = readiness + '%';
+      if (readiness >= 80) {
+        rScore.style.color = 'var(--accent-green)';
+        rStatus.innerText = 'FLIGHT CERTIFIED - OPTIMAL';
+      } else if (readiness >= 55) {
+        rScore.style.color = 'var(--accent-yellow)';
+        rStatus.innerText = 'ELEVATED RISK - INTERVENTIONS ACTIVE';
+      } else {
+        rScore.style.color = 'var(--accent-red)';
+        rStatus.innerText = 'MISSION COMPROMISED - CLINICAL PROTOCOL';
+      }
+
+      // Countermeasures
+      const cmList = document.getElementById('countermeasuresList');
+      cmList.innerHTML = '';
+      const cmActions = [];
+
+      if (speAlert || rad > 200) {
+        cmActions.push({ icon: 'fa-shield-halved', color: 'var(--accent-red)', text: 'IMMEDIATE: Crew retreat to water-wall storm shelter.' });
+        cmActions.push({ icon: 'fa-pills', color: 'var(--accent-red)', text: 'Administer radioprotectant antioxidant cocktail (oral).' });
+      }
+      if (sansRisk > 40) {
+        cmActions.push({ icon: 'fa-bed', color: 'var(--accent-yellow)', text: 'Schedule 2 hours Lower Body Negative Pressure (LBNP) at 25 mmHg.' });
+      }
+      if (ex < 2.0) {
+        cmActions.push({ icon: 'fa-dumbbell', color: 'var(--accent-yellow)', text: 'Increase ARED resistive sets to prevent bone mineral density decay.' });
+      }
+      if (co2 > 3.0) {
+        cmActions.push({ icon: 'fa-fan', color: 'var(--accent-yellow)', text: 'Swap ECLSS LiOH / amine CO2 scrubbers; cabin pCO2 above 3 mmHg.' });
+      }
+      if (cmActions.length === 0) {
+        cmActions.push({ icon: 'fa-circle-check', color: 'var(--accent-green)', text: 'Maintain nominal 2.2 hr ARED resistive and CEVIS aerobic protocol.' });
+        cmActions.push({ icon: 'fa-circle-check', color: 'var(--accent-green)', text: 'Next routine OCT eye scan scheduled at 18:00 UTC.' });
+      }
+
+      cmActions.forEach(a => {
+        cmList.innerHTML += `
+          <div class="action-item">
+            <i class="fa-solid ${a.icon}" style="color: ${a.color}; margin-top: 2px;"></i>
+            <div>${a.text}</div>
+          </div>
+        `;
+      });
+    }
+
+    function triggerSolarFlare() {
+      speAlert = true;
+      document.getElementById('inp_rad').value = 350;
+      runEvaluation();
+    }
+
+    function triggerSANSDecomp() {
+      document.getElementById('inp_optic').value = 420;
+      document.getElementById('inp_iop').value = 26;
+      runEvaluation();
+    }
+
+    function resetNominal() {
+      speAlert = false;
+      document.getElementById('inp_optic').value = 140;
+      document.getElementById('inp_iop').value = 17.5;
+      document.getElementById('inp_rad').value = 65;
+      document.getElementById('inp_hr').value = 68;
+      document.getElementById('inp_ex').value = 2.2;
+      document.getElementById('inp_sleep').value = 6.8;
+      document.getElementById('inp_co2').value = 1.8;
+      runEvaluation();
+    }
+
+    // Initial evaluation
+    runEvaluation();
+  </script>
+</body>
+</html>

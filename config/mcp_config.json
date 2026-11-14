@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "nasa-spaceapps-2026": {
+      "command": "python",
+      "args": [
+        "G:\\Mi unidad\\Nasa\\run_mcp_server.py"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}
